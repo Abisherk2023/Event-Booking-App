@@ -40,7 +40,7 @@ function EventDetail() {
     try {
       await api.post('/bookings', { eventId: id });
       setMessage('Booking confirmed!');
-      fetchEvent(); // refresh seat count
+      fetchEvent();
     } catch (err) {
       setMessage(err.response?.data?.message || 'Booking failed');
     } finally {
@@ -48,23 +48,31 @@ function EventDetail() {
     }
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (!event) return <p>Event not found</p>;
+  if (loading) return <p className="page-container">Loading...</p>;
+  if (!event) return <p className="page-container">Event not found</p>;
 
   const seatsLeft = event.capacity - event.seatsBooked;
 
   return (
-    <div>
-      <h2>{event.title}</h2>
-      <p>{event.description}</p>
-      <p>{event.location} — {new Date(event.date).toLocaleDateString()}</p>
-      <p>{seatsLeft > 0 ? `${seatsLeft} seats left` : 'Fully booked'}</p>
+    <div className="page-container">
+      <div className="event-card">
+        <h2>{event.title}</h2>
+        <p>{event.description}</p>
+        <p>{event.location} — {new Date(event.date).toLocaleDateString()}</p>
+        <p className={seatsLeft > 0 ? 'seats-left' : 'seats-full'}>
+          {seatsLeft > 0 ? `${seatsLeft} seats left` : 'Fully booked'}
+        </p>
 
-      <button onClick={handleBook} disabled={booking || seatsLeft <= 0}>
-        {seatsLeft <= 0 ? 'Fully Booked' : booking ? 'Booking...' : 'Book Now'}
-      </button>
+        <button
+          className="btn-primary"
+          onClick={handleBook}
+          disabled={booking || seatsLeft <= 0}
+        >
+          {seatsLeft <= 0 ? 'Fully Booked' : booking ? 'Booking...' : 'Book Now'}
+        </button>
 
-      {message && <p>{message}</p>}
+        {message && <p style={{ marginTop: '12px' }}>{message}</p>}
+      </div>
     </div>
   );
 }
