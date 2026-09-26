@@ -5,20 +5,22 @@ function Navbar() {
   const { user, logout } = useAuth();
 
   return (
-    <nav>
+    <nav className="navbar">
       <Link to="/">Events</Link>
-      {user ? (
-        <>
-          <Link to="/my-bookings">My Bookings</Link>
-          <span>Hi, {user.name}</span>
-          <button onClick={logout}>Logout</button>
-        </>
-      ) : (
-        <>
-          <Link to="/login">Login</Link>
-          <Link to="/signup">Signup</Link>
-        </>
-      )}
+      <div className="nav-right">
+        {user ? (
+          <>
+            <Link to="/my-bookings">My Bookings</Link>
+            <span>Hi, {user.name}</span>
+            <button onClick={logout}>Logout</button>
+          </>
+        ) : (
+          <>
+            <Link to="/login">Login</Link>
+            <Link to="/signup">Signup</Link>
+          </>
+        )}
+      </div>
     </nav>
   );
 }

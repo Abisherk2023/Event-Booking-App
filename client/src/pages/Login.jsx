@@ -29,10 +29,10 @@ function Login() {
   };
 
   return (
-    <div>
+    <div className="form-container">
       <h2>Login</h2>
       <form onSubmit={handleSubmit}>
-        <div>
+        <div className="form-group">
           <label>Email</label>
           <input
             type="email"
@@ -41,7 +41,7 @@ function Login() {
             required
           />
         </div>
-        <div>
+        <div className="form-group">
           <label>Password</label>
           <input
             type="password"
@@ -50,12 +50,12 @@ function Login() {
             required
           />
         </div>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <button type="submit" disabled={submitting}>
+        {error && <p className="error-text">{error}</p>}
+        <button className="btn-primary" type="submit" disabled={submitting}>
           {submitting ? 'Logging in...' : 'Login'}
         </button>
       </form>
-      <p>Don't have an account? <Link to="/signup">Signup</Link></p>
+      <p style={{ marginTop: '16px' }}>Don't have an account? <Link to="/signup">Signup</Link></p>
     </div>
   );
 }

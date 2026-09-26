@@ -1,45 +1,80 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 
-function EventList() {
-  const [events, setEvents] = useState([]);
+function EventDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+
+  const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
+  const [booking, setBooking] = useState(false);
+
+  const fetchEvent = async () => {
+    try {
+      const res = await api.get(`/events/${id}`);
+      setEvent(res.data);
+    } catch (err) {
+      setMessage('Failed to load event');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchEvents = async () => {
-      try {
-        const res = await api.get('/events');
-        setEvents(res.data);
-      } catch (err) {
-        setError('Failed to load events');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchEvents();
-  }, []);
+    fetchEvent();
+  }, [id]);
 
-  if (loading) return <p>Loading events...</p>;
-  if (error) return <p>{error}</p>;
+  const handleBook = async () => {
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    setBooking(true);
+    setMessage('');
+
+    try {
+      await api.post('/bookings', { eventId: id });
+      setMessage('Booking confirmed!');
+      fetchEvent();
+    } catch (err) {
+      setMessage(err.response?.data?.message || 'Booking failed');
+    } finally {
+      setBooking(false);
+    }
+  };
+
+  if (loading) return <p className="page-container">Loading...</p>;
+  if (!event) return <p className="page-container">Event not found</p>;
+
+  const seatsLeft = event.capacity - event.seatsBooked;
 
   return (
-    <div>
-      <h2>Upcoming Events</h2>
-      {events.map((event) => {
-        const seatsLeft = event.capacity - event.seatsBooked;
-        return (
-          <div key={event._id} style={{ border: '1px solid #ccc', margin: '10px', padding: '10px' }}>
-            <h3>{event.title}</h3>
-            <p>{event.location} — {new Date(event.date).toLocaleDateString()}</p>
-            <p>{seatsLeft > 0 ? `${seatsLeft} seats left` : 'Fully booked'}</p>
-            <Link to={`/events/${event._id}`}>View Details</Link>
-          </div>
-        );
-      })}
+    <div className="page-container">
+      <div className="event-card">
+        <h2>{event.title}</h2>
+        <p>{event.description}</p>
+        <p>{event.location} — {new Date(event.date).toLocaleDateString()}</p>
+        <p className={seatsLeft > 0 ? 'seats-left' : 'seats-full'}>
+          {seatsLeft > 0 ? `${seatsLeft} seats left` : 'Fully booked'}
+        </p>
+
+        <button
+          className="btn-primary"
+          onClick={handleBook}
+          disabled={booking || seatsLeft <= 0}
+        >
+          {seatsLeft <= 0 ? 'Fully Booked' : booking ? 'Booking...' : 'Book Now'}
+        </button>
+
+        {message && <p style={{ marginTop: '12px' }}>{message}</p>}
+      </div>
     </div>
   );
 }
 
-export default EventList;
+export default EventDetail;

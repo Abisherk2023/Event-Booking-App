@@ -59,4 +59,34 @@ router.get('/my', protect, async (req, res) => {
   }
 });
 
+// PATCH /api/bookings/:id/cancel - cancel a booking (protected route)
+router.patch('/:id/cancel', protect, async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    // Make sure the logged-in user owns this booking
+    if (booking.user.toString() !== req.userId) {
+      return res.status(403).json({ message: 'Not authorized to cancel this booking' });
+    }
+
+    if (booking.status === 'cancelled') {
+      return res.status(400).json({ message: 'Booking is already cancelled' });
+    }
+
+    booking.status = 'cancelled';
+    await booking.save();
+
+    // Free up the seat on the event
+    await Event.findByIdAndUpdate(booking.event, { $inc: { seatsBooked: -1 } });
+
+    res.json({ message: 'Booking cancelled', booking });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 module.exports = router;
